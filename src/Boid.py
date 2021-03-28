@@ -13,14 +13,17 @@ class Boid:
         self.cohesion_force = np.zeros(shape=(1, 2))
         self.separation_force = np.zeros(shape=(1, 2))
 
-        self.blab = np.random.randint(-8, 8, size=(1, 2))
-        self.normal_4 = np.linalg.norm(self.blab)
-        if self.normal_4 != 0:
-            self.normal_movement = self.blab / self.normal_4
+        self.random_initial_movement = np.random.randint(-8, 8, size=(1, 2))
+        self.normalized_initial_movement = np.linalg.norm(self.random_initial_movement)
+        if self.normalized_initial_movement != 0:
+            self.normal_movement = self.random_initial_movement / self.normalized_initial_movement
 
         self.directional_force = np.random.randint(0, 25, size=(1, 2))
 
         self.area_boundries = 1500
+
+
+        self.start_flag = True
 
     def calc_movement(self):
         self.aligning_force = np.zeros(shape=(1, 2))
@@ -73,15 +76,13 @@ class Boid:
             # self.separation_force = np.array([np.average(separation, axis=0)]) / normal_3
             self.separation_force = np.array([np.average(separation, axis=0)])
 
-        self.blab = np.random.randint(-8, 8, size=(1, 2))
-        self.normal_4 = np.linalg.norm(self.blab)
-        if self.normal_4 != 0:
-            self.normal_movement = self.blab / self.normal_4
 
     def update(self):
         self.calc_movement()
+
         self.position = self.position + (
                 self.normal_movement * self.ctrl.boids_normal_movement_factor \
                 + self.separation_force * self.ctrl.boids_separation_factor \
                 + self.cohesion_force * self.ctrl.boids_cohesion_factor \
                 + self.aligning_force * self.ctrl.boids_alignment_factor) / self.ctrl.slow_down_factor
+
