@@ -1,4 +1,6 @@
 import numpy as np
+import random
+import math
 
 
 class Boid:
@@ -7,82 +9,137 @@ class Boid:
         self.ctrl = ctrl
         self.flock = flock
 
-        self.position = np.random.randint(-150, 150, size=(1, 2))
+        self.x = random.randint(0, self.ctrl.frame_size)
+        self.y = random.randint(0, self.ctrl.frame_size)
 
-        self.aligning_force = np.zeros(shape=(1, 2))
-        self.cohesion_force = np.zeros(shape=(1, 2))
-        self.separation_force = np.zeros(shape=(1, 2))
+        self.dx = random.randint(0, self.ctrl.boids_normal_movement_factor)
+        self.dy = random.randint(0, self.ctrl.boids_normal_movement_factor)
 
-        self.random_initial_movement = np.random.randint(-8, 8, size=(1, 2))
-        self.normalized_initial_movement = np.linalg.norm(self.random_initial_movement)
-        if self.normalized_initial_movement != 0:
-            self.normal_movement = self.random_initial_movement / self.normalized_initial_movement
+        self.max_speed = 10
 
-        self.directional_force = np.random.randint(0, 25, size=(1, 2))
+    def alignment(self, flock):
+        if not flock:
+            return
 
-        self.area_boundries = 1500
+        avgDx = 0
+        avgDy = 0
+        cnt = 0
 
+        for boid in flock:
+            avgDx += boid.dx
+            avgDy += boid.dy
+            cnt += 1
 
-        self.start_flag = True
+        if cnt != 0:
+            avgDx /= cnt
+            avgDy /= cnt
 
-    def calc_movement(self):
-        self.aligning_force = np.zeros(shape=(1, 2))
-        self.cohesion_force = np.zeros(shape=(1, 2))
-        self.separation_force = np.zeros(shape=(1, 2))
-        direction_alignment = np.zeros(shape=(1, 2))
-        separation = np.zeros(shape=(1, 2))
-        position_cohesion = np.zeros(shape=(1, 2))
+        else:
+            avgDx = self.dx
+            avgDy = self.dy
 
-        for idx, val in enumerate(self.flock):
-            if self.flock[val] != self:
-                distance_to_next_boid = np.linalg.norm(np.subtract(self.flock[val].position, self.position), 2)
-                if distance_to_next_boid <= self.ctrl.distance_to_next_boid:
-                    direction_alignment = np.append(direction_alignment, self.flock[val].directional_force, axis=0)
+        self.dx += (avgDx - self.dx) * self.ctrl.boids_alignment_factor
+        self.dy += (avgDy - self.dy) * self.ctrl.boids_alignment_factor
 
-                    position_cohesion = np.append(position_cohesion, self.flock[val].position, axis=0)
+    def cohesion(self, flock):
+        if not flock:
+            return
+        cohesion_x = 0
+        cohesion_y = 0
+        cnt = 0
+        for boid in flock:
+            distance = self.distance(boid)
+            cohesion_x += (boid.x)
+            cohesion_y += (boid.y)
+            cnt += 1
 
-                    separation = np.append(separation,
-                                           np.subtract(self.position, self.flock[val].position) / distance_to_next_boid,
-                                           axis=0)
+        if cnt != 0:
+            cohesion_x /= cnt
+            cohesion_y /= cnt
 
-                else:
-                    self.cohesion_force = np.zeros(shape=(1, 2))
-                    self.aligning_force = np.zeros(shape=(1, 2))
-                    self.separation_force = np.zeros(shape=(1, 2))
+            cohesion_x -= self.x
+            cohesion_y -= self.y
 
-        if self.position[0][0] <= -self.area_boundries or self.position[0][1] <= -self.area_boundries or \
-                self.position[0][0] >= self.area_boundries or self.position[0][1] >= self.area_boundries:
-            self.position = np.random.randint(-100, 100, size=(1, 2))
-            self.cohesion_force = np.zeros(shape=(1, 2))
-            self.aligning_force = np.zeros(shape=(1, 2))
-            self.separation_force = np.zeros(shape=(1, 2))
+        else:
+            cohesion_x = 0
+            cohesion_y = 0
 
-        # alignment
-        normal = np.linalg.norm(
-            np.array([np.average(direction_alignment, axis=0)]))
-        if normal != 0:
-            self.aligning_force = np.array([np.average(direction_alignment, axis=0)]) / normal
+        self.dx += cohesion_x * self.ctrl.boids_cohesion_factor
+        self.dy += cohesion_y * self.ctrl.boids_cohesion_factor
 
-        # cohesion
-        avrg_position = np.array([np.average(position_cohesion, axis=0)])
-        normal_2 = np.linalg.norm(np.subtract(avrg_position, self.position))
-        if normal_2 != 0 and np.linalg.norm(avrg_position) != 0.0:
-            self.cohesion_force = np.subtract(avrg_position, self.position) / normal_2
+    def separation(self, flock):
+        if not flock:
+            return
+        separation_x = 0
+        separation_y = 0
+        cnt = 0
+        for boid in flock:
+            distance = self.distance(boid)
+            if distance != 0:
+                separation_x += ((boid.x - self.x) / distance)
+                separation_y += ((boid.y - self.y) / distance)
+                cnt += 1
 
-        # separation
-        normal_3 = np.linalg.norm(
-            np.array([np.average(separation, axis=0)]))
-        if normal_3 != 0:
-            # self.separation_force = np.array([np.average(separation, axis=0)]) / normal_3
-            self.separation_force = np.array([np.average(separation, axis=0)])
+        if cnt != 0:
+            separation_x /= cnt
+            separation_y /= cnt
 
+        else:
+            separation_x = 0
+            separation_y = 0
+
+        self.dx -= separation_x * self.ctrl.boids_separation_factor
+        self.dy -= separation_y * self.ctrl.boids_separation_factor
+
+    def find_interesting_other_boids(self, flock):
+        interesting_boids = []
+        for idx, boid in enumerate(flock):
+            if flock[idx] != self:
+                if self.distance(flock[idx]) < self.ctrl.distance_to_next_boid:
+                    interesting_boids.append(flock[idx])
+
+        return interesting_boids
+
+    def keepWithinBounds(self):
+        margin = 100
+        turnFactor = 1
+
+        if self.x < margin:
+            self.dx += turnFactor
+        if self.x > (self.ctrl.frame_size - margin):
+            self.dx -= turnFactor
+
+        if self.y < margin:
+            self.dy += turnFactor
+        if self.y > (self.ctrl.frame_size - margin):
+            self.dy -= turnFactor
+
+    def limit_speed(self):
+        current_speed = math.sqrt(self.dx ** 2 + self.dy ** 2)
+        if current_speed > self.max_speed:
+            self.dx = (self.dx / current_speed) * self.max_speed
+            self.dy = (self.dy / current_speed) * self.max_speed
+
+    def heading(self):
+        return math.degrees(math.asin(self.dy / math.sqrt(self.dx ** 2 + self.dy ** 2)))
+
+    def in_field_of_view(self, boid):
+        # if boid.x <= self.x + math.radians()
+
+        pass
+
+    def distance(self, boid):
+        return math.sqrt((boid.x - self.x) ** 2 + (boid.y - self.y) ** 2)
 
     def update(self):
-        self.calc_movement()
+        # self.calc_movement()
+        boids = self.find_interesting_other_boids(self.flock)
 
-        self.position = self.position + (
-                self.normal_movement * self.ctrl.boids_normal_movement_factor \
-                + self.separation_force * self.ctrl.boids_separation_factor \
-                + self.cohesion_force * self.ctrl.boids_cohesion_factor \
-                + self.aligning_force * self.ctrl.boids_alignment_factor) / self.ctrl.slow_down_factor
+        self.cohesion(boids)
+        self.separation(boids)
+        self.alignment(boids)
 
+        self.limit_speed()
+        self.keepWithinBounds()
+        self.x = self.x + self.dx / self.ctrl.slow_down_factor
+        self.y = self.y + self.dy / self.ctrl.slow_down_factor

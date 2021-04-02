@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import pyqtgraph
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import QThread
@@ -16,6 +17,7 @@ class AppCtrl:
         self.initialize_gui()
 
         self.plot = self.mainWindow.getPlot()
+
         self.mainPlot = None
         self.plot_init_flag = True
 
@@ -23,11 +25,14 @@ class AppCtrl:
 
         self.boids_cnt = 30
         self.boids_normal_movement_factor = 30
-        self.boids_alignment_factor = 40
-        self.boids_cohesion_factor = 82
-        self.boids_separation_factor = 98
+        self.boids_alignment_factor = 0
+        self.boids_cohesion_factor = 0
+
+        self.boids_separation_factor = 0
         self.distance_to_next_boid = 30
-        self.slow_down_factor = 18
+        self.slow_down_factor = 1
+        self.frame_size = 1000
+
 
         self.flock_thread = QThread()
         self.flocking_worker = FlockingWorker.FlockingWorker(self)
@@ -39,6 +44,8 @@ class AppCtrl:
         self.timer = QtCore.QTimer()
         self.timer.setInterval(10)
         self.timer.timeout.connect(self.updatePlot)
+
+
 
 
     def connect_signals(self):
@@ -69,19 +76,19 @@ class AppCtrl:
         self.mainWindow.boid_cnt.setText(str(self.boids_cnt))
 
     def boids_normal_movement_factor_setter(self):
-        self.boids_normal_movement_factor = self.mainWindow.normal.value() / 10
+        self.boids_normal_movement_factor = self.mainWindow.normal.value()
         self.mainWindow.movement_factor.setText(str(self.boids_normal_movement_factor))
 
     def boids_alignment_factor_setter(self):
-        self.boids_alignment_factor = self.mainWindow.alignment.value() / 10
+        self.boids_alignment_factor = self.mainWindow.alignment.value() / 100
         self.mainWindow.alignment_factor.setText(str(self.boids_alignment_factor))
 
     def boids_cohesion_factor_setter(self):
-        self.boids_cohesion_factor = self.mainWindow.cohesion.value() / 10
+        self.boids_cohesion_factor = self.mainWindow.cohesion.value() / 100
         self.mainWindow.cohesion_factor.setText(str(self.boids_cohesion_factor))
 
     def boids_separation_factor_setter(self):
-        self.boids_separation_factor = self.mainWindow.separation.value() / 10
+        self.boids_separation_factor = self.mainWindow.separation.value() / 100
         self.mainWindow.separation_factor.setText(str(self.boids_separation_factor))
 
     def boids_distance_setter(self):
@@ -104,9 +111,14 @@ class AppCtrl:
     def updatePlot(self):
         if self.plot_init_flag:
             if self.flock_plot_data:
-                self.mainPlot = self.plot.plot(self.flock_plot_data[0], self.flock_plot_data[1], name='Boids', pen=None,
+                self.pen = pyqtgraph.mkPen('y', width=3)
+                self.mainPlot = self.plot.plot(self.flock_plot_data[0], self.flock_plot_data[1],
+                                               name='Boids',
+                                               pen=None,
+                                               symbolPen=self.pen,
                                                symbol='o',
-                                               symbolSize=3)
+                                               symbolSize=5
+                                               )
                 self.plot_init_flag = False
         else:
             if self.flock_plot_data:

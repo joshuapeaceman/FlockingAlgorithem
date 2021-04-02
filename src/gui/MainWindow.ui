@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1200</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,29 +37,39 @@
           <item row="2" column="1">
            <widget class="QSlider" name="alignment">
             <property name="maximum">
-             <number>1000</number>
+             <number>250</number>
             </property>
             <property name="singleStep">
              <number>1</number>
             </property>
             <property name="value">
-             <number>40</number>
+             <number>0</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QSlider" name="cohesion">
-            <property name="maximum">
-             <number>1000</number>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Slow down factor</string>
             </property>
-            <property name="singleStep">
-             <number>1</number>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSlider" name="boids">
+            <property name="minimumSize">
+             <size>
+              <width>250</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximum">
+             <number>500</number>
             </property>
             <property name="value">
-             <number>82</number>
+             <number>30</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -75,43 +85,10 @@
              <number>1</number>
             </property>
             <property name="value">
-             <number>98</number>
+             <number>0</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QSlider" name="boids">
-            <property name="minimumSize">
-             <size>
-              <width>250</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximum">
-             <number>50</number>
-            </property>
-            <property name="value">
-             <number>30</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Slow down factor</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="2">
-           <widget class="QLabel" name="distance_factor">
-            <property name="text">
-             <string/>
             </property>
            </widget>
           </item>
@@ -128,6 +105,29 @@
             </property>
            </spacer>
           </item>
+          <item row="3" column="1">
+           <widget class="QSlider" name="cohesion">
+            <property name="maximum">
+             <number>250</number>
+            </property>
+            <property name="singleStep">
+             <number>1</number>
+            </property>
+            <property name="value">
+             <number>0</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2">
+           <widget class="QLabel" name="distance_factor">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="2">
            <widget class="QLabel" name="boid_cnt">
             <property name="minimumSize">
@@ -141,33 +141,10 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QSlider" name="normal">
-            <property name="maximum">
-             <number>1000</number>
-            </property>
-            <property name="singleStep">
-             <number>1</number>
-            </property>
-            <property name="value">
-             <number>30</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
+          <item row="8" column="0" colspan="3">
+           <widget class="QPushButton" name="run_simulation">
             <property name="text">
-             <string>Normal movement factor</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="QLabel" name="cohesion_factor">
-            <property name="text">
-             <string/>
+             <string>Run Simulation</string>
             </property>
            </widget>
           </item>
@@ -178,13 +155,6 @@
             </property>
            </widget>
           </item>
-          <item row="8" column="0" colspan="3">
-           <widget class="QPushButton" name="run_simulation">
-            <property name="text">
-             <string>Run Simulation</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="2">
            <widget class="QLabel" name="movement_factor">
             <property name="text">
@@ -192,10 +162,19 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Boids</string>
+          <item row="1" column="1">
+           <widget class="QSlider" name="normal">
+            <property name="maximum">
+             <number>500</number>
+            </property>
+            <property name="singleStep">
+             <number>1</number>
+            </property>
+            <property name="value">
+             <number>30</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>
@@ -213,10 +192,31 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_4">
+          <item row="3" column="2">
+           <widget class="QLabel" name="cohesion_factor">
             <property name="text">
-             <string>Cohesion factor</string>
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Normal movement factor</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Boids</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="2">
+           <widget class="QLabel" name="slow_down_factor">
+            <property name="text">
+             <string/>
             </property>
            </widget>
           </item>
@@ -224,6 +224,35 @@
            <widget class="QLabel" name="label_3">
             <property name="text">
              <string>Alignment factor</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Cohesion factor</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QSlider" name="slow_down">
+            <property name="minimum">
+             <number>10</number>
+            </property>
+            <property name="maximum">
+             <number>25</number>
+            </property>
+            <property name="singleStep">
+             <number>1</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+            <property name="sliderPosition">
+             <number>10</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>
@@ -240,32 +269,6 @@
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="1">
-           <widget class="QSlider" name="slow_down">
-            <property name="minimum">
-             <number>10</number>
-            </property>
-            <property name="maximum">
-             <number>1000</number>
-            </property>
-            <property name="singleStep">
-             <number>1</number>
-            </property>
-            <property name="value">
-             <number>18</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="2">
-           <widget class="QLabel" name="slow_down_factor">
-            <property name="text">
-             <string/>
             </property>
            </widget>
           </item>

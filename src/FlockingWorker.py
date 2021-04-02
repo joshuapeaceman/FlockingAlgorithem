@@ -32,8 +32,8 @@ class FlockingWorker(QObject):
     def translate_flog_pos_data_to_plot_data(self):
         data = ([], [])
         for idx, val in enumerate(self.flock):
-            data[0].append(self.flock[val].position[0][0])
-            data[1].append(self.flock[val].position[0][1])
+            data[0].append(self.flock[val].x)
+            data[1].append(self.flock[val].y)
         self.plot_data_signal.emit(data)
 
 
