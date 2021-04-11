@@ -1,6 +1,5 @@
-import numpy as np
-import random
 import math
+import random
 
 
 class Boid:
@@ -12,10 +11,8 @@ class Boid:
         self.x = random.randint(0, self.ctrl.frame_size)
         self.y = random.randint(0, self.ctrl.frame_size)
 
-        self.dx = random.randint(0, self.ctrl.boids_normal_movement_factor)
-        self.dy = random.randint(0, self.ctrl.boids_normal_movement_factor)
-
-        self.max_speed = 10
+        self.dx = random.randint(0, self.ctrl.boids_max_speed)
+        self.dy = random.randint(0, self.ctrl.boids_max_speed)
 
     def alignment(self, flock):
         if not flock:
@@ -48,7 +45,7 @@ class Boid:
         cohesion_y = 0
         cnt = 0
         for boid in flock:
-            distance = self.distance(boid)
+            distance = self.distance_to_other_boid(boid)
             cohesion_x += (boid.x)
             cohesion_y += (boid.y)
             cnt += 1
@@ -74,7 +71,7 @@ class Boid:
         separation_y = 0
         cnt = 0
         for boid in flock:
-            distance = self.distance(boid)
+            distance = self.distance_to_other_boid(boid)
             if distance != 0:
                 separation_x += ((boid.x - self.x) / distance)
                 separation_y += ((boid.y - self.y) / distance)
@@ -95,12 +92,13 @@ class Boid:
         interesting_boids = []
         for idx, boid in enumerate(flock):
             if flock[idx] != self:
-                if self.distance(flock[idx]) < self.ctrl.distance_to_next_boid:
-                    interesting_boids.append(flock[idx])
+                if self.distance_to_other_boid(flock[idx]) < self.ctrl.distance_to_next_boid:
+                    if self.is_other_boid_in_field_of_view(flock[idx]):
+                        interesting_boids.append(flock[idx])
 
         return interesting_boids
 
-    def keepWithinBounds(self):
+    def keep_within_bounds(self):
         margin = 100
         turnFactor = 1
 
@@ -116,30 +114,43 @@ class Boid:
 
     def limit_speed(self):
         current_speed = math.sqrt(self.dx ** 2 + self.dy ** 2)
-        if current_speed > self.max_speed:
-            self.dx = (self.dx / current_speed) * self.max_speed
-            self.dy = (self.dy / current_speed) * self.max_speed
+        max_speed = self.ctrl.boids_max_speed
+        if current_speed > max_speed:
+            self.dx = (self.dx / current_speed) * max_speed
+            self.dy = (self.dy / current_speed) * max_speed
 
     def heading(self):
+        if self.dy == 0:
+            return 0.0
         return math.degrees(math.asin(self.dy / math.sqrt(self.dx ** 2 + self.dy ** 2)))
 
-    def in_field_of_view(self, boid):
-        # if boid.x <= self.x + math.radians()
+    def is_other_boid_in_field_of_view(self, boid):
+        dx = boid.x - self.x
+        dy = boid.y - self.y
 
-        pass
+        if dy == 0:
+            field_of_view_offset = 0.0
+        else:
+            field_of_view_offset = math.degrees(math.asin(dy / math.sqrt(dx ** 2 + dy ** 2)))
 
-    def distance(self, boid):
+        heading = self.heading()
+        if field_of_view_offset <= heading + self.ctrl.boids_field_of_view_angle and field_of_view_offset >= heading - self.ctrl.boids_field_of_view_angle:
+            return True
+        else:
+            return False
+
+    def distance_to_other_boid(self, boid):
         return math.sqrt((boid.x - self.x) ** 2 + (boid.y - self.y) ** 2)
 
     def update(self):
-        # self.calc_movement()
         boids = self.find_interesting_other_boids(self.flock)
 
         self.cohesion(boids)
         self.separation(boids)
         self.alignment(boids)
 
+        self.keep_within_bounds()
+
         self.limit_speed()
-        self.keepWithinBounds()
-        self.x = self.x + self.dx / self.ctrl.slow_down_factor
-        self.y = self.y + self.dy / self.ctrl.slow_down_factor
+        self.x = self.x + (self.dx / self.ctrl.slow_down_factor)
+        self.y = self.y + (self.dy / self.ctrl.slow_down_factor)
